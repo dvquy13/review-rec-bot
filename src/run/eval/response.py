@@ -1,28 +1,28 @@
-from typing import List
-import os
 import json
-from loguru import logger
-from tqdm import tqdm
+import os
+from typing import List
 
+import mlflow
 import numpy as np
 import pandas as pd
-import mlflow
-from llama_index.core.llama_dataset.generator import RagDatasetGenerator
-from llama_index.core.llama_dataset import LabeledRagDataset
 from llama_index.core.evaluation import (
     CorrectnessEvaluator,
     FaithfulnessEvaluator,
     RelevancyEvaluator,
 )
 from llama_index.core.evaluation.notebook_utils import get_eval_results_df
-from llama_index.llms.openai import OpenAI
-from llama_index.core.schema import Document
 from llama_index.core.llama_dataset import (
-    LabelledRagDataset,
-    LabelledRagDataExample,
     CreatedBy,
     CreatedByType,
+    LabeledRagDataset,
+    LabelledRagDataExample,
+    LabelledRagDataset,
 )
+from llama_index.core.llama_dataset.generator import RagDatasetGenerator
+from llama_index.core.schema import Document
+from llama_index.llms.openai import OpenAI
+from loguru import logger
+from tqdm import tqdm
 
 from src.run.cfg import RunConfig
 from src.run.eval.manual_eval_dataset import MANUAL_EVAL_QA
@@ -73,7 +73,7 @@ class ResponseEvaluator:
                 response_eval_documents,
                 llm=response_eval_llm,
                 num_questions_per_chunk=cfg.eval_cfg.response_synthetic_num_questions_per_chunk,  # set the number of questions per nodes
-                question_gen_query=cfg.eval_cfg.question_gen_query,  # Reuse the same format from the above Retrieval Question Gen Query
+                question_gen_query=cfg.eval_cfg.response_question_gen_query,  # Reuse the same format from the above Retrieval Question Gen Query
                 show_progress=True,
                 workers=(os.cpu_count() - 1),
             )
@@ -133,7 +133,7 @@ class ResponseEvaluator:
         response_eval_dataset,
         response_eval_prediction_dataset,
         dataset_name="synthetic",
-        judge_model="gpt-3.5-turbo",
+        judge_model="gpt-4o-mini",
         cache_dp=".",
     ):
         # Instantiate the judges

@@ -1,9 +1,8 @@
 import os
-from loguru import logger
 
 import qdrant_client
+from loguru import logger
 from qdrant_client.models import Distance, VectorParams
-
 
 from src.run.cfg import RunConfig
 
@@ -32,4 +31,4 @@ class RunOrchestrator:
                 ),
             )
         else:
-            logger.info(f"Use existing Qdrant collection")
+            logger.info(f"Use existing Qdrant collection: {db_collection}")

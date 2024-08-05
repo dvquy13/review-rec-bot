@@ -1,21 +1,21 @@
-from typing import List
-import os
 import json
-from loguru import logger
+import os
+from typing import List
 
+import mlflow
 import numpy as np
 import pandas as pd
-import mlflow
-from llama_index.core.schema import TextNode
-from llama_index.core.evaluation import RetrieverEvaluator
+from llama_index.core.evaluation import (
+    EmbeddingQAFinetuneDataset,
+    RetrieverEvaluator,
+    generate_question_context_pairs,
+)
 from llama_index.core.indices.vector_store.retrievers.retriever import (
     VectorIndexRetriever,
 )
-from llama_index.core.evaluation import (
-    generate_question_context_pairs,
-    EmbeddingQAFinetuneDataset,
-)
+from llama_index.core.schema import TextNode
 from llama_index.llms.openai import OpenAI
+from loguru import logger
 
 from src.run.cfg import RunConfig
 
@@ -49,16 +49,13 @@ class RetrievalEvaluator:
                 retrieval_eval_nodes = nodes
 
             qa_generate_prompt_tmpl = f"""
-            Context information is below.
+Context information is below.
 
-            ---------------------
-            {{context_str}}
-            ---------------------
+---------------------
+{{context_str}}
+---------------------
 
-            Given the context information and not prior knowledge.
-            generate only questions based on the below query.
-
-            {cfg.eval_cfg.question_gen_query}
+{cfg.eval_cfg.retrieval_question_gen_query}
             """
 
             # Use good model to generate the eval dataset

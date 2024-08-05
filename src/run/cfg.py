@@ -1,12 +1,12 @@
-from typing import List
-import sys
 import os
-from typing import Literal
-from pydantic import BaseModel
+import sys
+from typing import List, Literal
+
 from loguru import logger
+from pydantic import BaseModel
 
 from src.run.args import RunInputArgs
-from src.run.utils import substitute_punctuation, pprint_pydantic_model
+from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
 
 class LLMConfig(BaseModel):
@@ -15,7 +15,10 @@ class LLMConfig(BaseModel):
     embedding_provider: Literal["openai", "togetherai", "ollama", "huggingface"] = (
         "huggingface"
     )
-    embedding_model_name: str = "BAAI/bge-large-en-v1.5"
+    # embedding_model_name: str = "BAAI/bge-large-en-v1.5"
+    embedding_model_name: str = (
+        "Snowflake/snowflake-arctic-embed-m-v1.5"  # one-third the size of bge-large-en-v1.5 but better average retrieval benchmark
+    )
     embedding_model_dim: int = None
 
     ollama__host: str = "192.168.100.14"
@@ -23,17 +26,17 @@ class LLMConfig(BaseModel):
 
 
 class RetrievalConfig(BaseModel):
-    retrieval_top_k: int = 5
+    retrieval_top_k: int = 10
     retrieval_similarity_cutoff: int = None
-    rerank_top_k: int = 2
+    rerank_top_k: int = 5
     rerank_model_name: str = "BAAI/bge-reranker-large"
 
 
 class EvalConfig(BaseModel):
-    retrieval_num_sample_nodes: int = 10
+    retrieval_num_sample_nodes: int = 20
     retrieval_eval_llm_model: str = "gpt-4o-mini"
     retrieval_eval_llm_model_config: dict = {"temperature": 0.3}
-    retrieval_num_questions_per_chunk: int = 2
+    retrieval_num_questions_per_chunk: int = 1
     retrieval_metrics: List[int] = [
         "hit_rate",
         "mrr",
@@ -45,15 +48,41 @@ class EvalConfig(BaseModel):
     retrieval_eval_dataset_fp: str = (
         "data/001_retriever/retrieval_synthetic_eval_dataset.json"
     )
-    question_gen_query: str = """
-You are a Retriever Evaluator. Your task is to generate {num_questions_per_chunk} questions to assess the accuracy/relevancy of an information retrieval system.
-The information retrieval system would then be asked your generated question and assessed on how well it can look up and return the correct context.
+
+    retrieval_question_gen_query: str = """
+You are a helpful Retriever Evaluator.
+
+Your task is to generate {num_questions_per_chunk} search queries based to only the given context, not prior information to assess the accuracy/relevancy of an information retrieval system.
+The information retrieval system would then be asked your generated search queries and assessed on how well it can look up and return the correct reviews as context.
+
+<EXAMPLE>
+Input context: What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
+Output search queries: nearby Santa Barbara
+</EXAMPLE>
 
 IMPORTANT RULES:
-- Restrict the generated questions to the context information provided.
-- Do not mention anything about the context in the generated questions.
-- The generated questions should be diverse in nature and in difficulty across the documents.
-- When being asked the generated question, a human with no prior knowledge can still answer perfectly given the input context.
+- Restrict the generated queries to the context information provided
+- Do not mention anything about the context in the generated queries
+- The generated search queries should be specific enough so that there are a few of the relevant reviews only
+- Avoid general/ambiguous queries like: "atmosphere and ambience of the place"
+"""
+
+    response_question_gen_query: str = """
+You are a helpful Retrieval Evaluator.
+
+Your task is to generate {num_questions_per_chunk} search queries based to only the given context, not prior information to assess the accuracy/relevancy of an information retrieval system.
+The information retrieval system would then be asked your generated search queries and assessed on how well it can look up and return the correct reviews as context.
+
+<EXAMPLE>
+Input context: What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
+Output search queries: nearby Santa Barbara
+</EXAMPLE>
+
+IMPORTANT RULES:
+- Restrict the generated queries to the context information provided
+- Do not mention anything about the context in the generated queries
+- The generated search queries should be specific enough so that there are a few of the relevant reviews only
+- Avoid general/ambiguous queries like: "atmosphere and ambience of the place"
 """
 
     response_synthetic_eval_dataset_fp: str = (
@@ -71,7 +100,9 @@ IMPORTANT RULES:
 class RunConfig(BaseModel):
     args: RunInputArgs = None
     app_name: str = "review_rec_bot"
-    db_collection: str = "huggingface__BAAI_bge_large_en_v1_5__001_retriever"
+    db_collection: str = (
+        "review_rec_bot__huggingface__BAAI_bge_large_en_v1_5__001_retriever"
+    )
     nodes_persist_fp: str = "data/001_retriever/nodes.pkl"
     notebook_cache_dp: str = None
 
@@ -135,8 +166,9 @@ class RunConfig(BaseModel):
         llm_model_name = self.llm_cfg.llm_model_name
 
         if llm_provider == "ollama":
-            from llama_index.llms.ollama import Ollama
             import subprocess
+
+            from llama_index.llms.ollama import Ollama
 
             ollama_host = self.llm_cfg.ollama__host
             ollama_port = self.llm_cfg.ollama__port
