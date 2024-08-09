@@ -27,13 +27,17 @@ class LLMConfig(BaseModel):
 
 class RetrievalConfig(BaseModel):
     retrieval_top_k: int = 10
-    retrieval_similarity_cutoff: int = None
+    retrieval_dense_top_k: int = 5
+    retrieval_sparse_top_k: int = 15
+    retrieval_similarity_cutoff: int = (
+        None  # If using RRF, this applies after the RRF so the score ties closely to the RRF formula. Not as helpful to use in this case...
+    )
     rerank_top_k: int = 5
     rerank_model_name: str = "BAAI/bge-reranker-large"
 
 
 class EvalConfig(BaseModel):
-    retrieval_num_sample_nodes: int = 20
+    retrieval_num_sample_nodes: int = 30
     retrieval_eval_llm_model: str = "gpt-4o-mini"
     retrieval_eval_llm_model_config: dict = {"temperature": 0.3}
     retrieval_num_questions_per_chunk: int = 1
@@ -46,65 +50,75 @@ class EvalConfig(BaseModel):
         "ndcg",
     ]
     retrieval_eval_dataset_fp: str = (
-        "data/006_rerun with question respon/retrieval_synthetic_eval_dataset.json"
+        "data/015_revamp_synthetic_eval/retrieval_synthetic_eval_dataset.json"
     )
 
     retrieval_question_gen_query: str = """
-You are a helpful Retrieval Evaluator.
+You are a helpful assistant.
 
-Your task is to generate {num_questions_per_chunk} search queries based to only the given context, not prior information to assess the accuracy/relevancy of an information retrieval system.
-The information retrieval system would then be asked your generated search queries and assessed on how well it can look up and return the correct reviews as context.
+Your task is to generate {num_questions_per_chunk} questions based on only the given context, not prior information.
+The questions are aim to find businesses/locations to go to, for example: restaurants, shopping mall, parking lots, ...
 
 <EXAMPLE>
-Input context: What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
-Output search queries: What are the recommended restaurants nearby Santa Barbara?
+Input context: Biz_name: Clara's Kitchen. What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
+Output questions: What are some recommended restaurants in Funk Zone?
+
+Some example of good generated questions:
+- What are some reliable shipping or delivery services in Affton?
+- What are some clothing stores with good quality customer service or support?
+
 </EXAMPLE>
 
 IMPORTANT RULES:
-- The generated queries should indicate a clear intention with "finding a restaurant" a typical one
-- Restrict the generated queries to the context information provided
+- The generated questions must be specific about the categories of businesses it's looking for. A good generated question would have its typical answer being: Here are some options for you: Place A because..., Place B because...
+- Restrict the generated question to the context information provided
+- Pay attention to the sentiment of the context review. If the review is bad then never return a question that ask for a good experience.
 - Do not mention anything about the context in the generated queries
-- The generated search queries should be specific enough so that there are a few of the relevant reviews only
-- Avoid general/ambiguous queries like: "atmosphere and ambience of the place"
+- The generated questions must be complete on its own. Do not assume the person receiving the question know anything about the person asking the question. for example never use "in my area" or "near me".
 """
 
     response_question_gen_query: str = """
-You are a helpful Retrieval Evaluator.
+You are a helpful assistant.
 
-Your task is to generate {num_questions_per_chunk} search queries based to only the given context, not prior information to assess the accuracy/relevancy of an information retrieval system.
-The information retrieval system would then be asked your generated search queries and assessed on how well it can look up and return the correct reviews as context.
+Your task is to generate {num_questions_per_chunk} questions based on only the given context, not prior information.
+The questions are aim to find businesses/locations to go to, for example: restaurants, shopping mall, parking lots, ...
 
 <EXAMPLE>
-Input context: What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
-Output search queries: What are the recommended restaurants nearby Santa Barbara?
+Input context: Biz_name: Clara's Kitchen. What a great addition to the Funk Zone!  Grab a bite, grab some tastings, life is good. Right next door to the Santa Barbara Wine Collective, in fact it actually shares the same tables.  We had a fabulous savory croissant.
+Output questions: What are some recommended restaurants in Funk Zone?
+
+Some example of good generated questions:
+- What are some reliable shipping or delivery services in Affton?
+- What are some clothing stores with good quality customer service or support?
+
 </EXAMPLE>
 
 IMPORTANT RULES:
-- The generated queries should indicate a clear intention with "finding a restaurant" a typical one
-- Restrict the generated queries to the context information provided
+- The generated questions must be specific about the categories of businesses it's looking for. A good generated question would have its typical answer being: Here are some options for you: Place A because..., Place B because...
+- Restrict the generated question to the context information provided
+- Pay attention to the sentiment of the context review. If the review is bad then never return a question that ask for a good experience.
 - Do not mention anything about the context in the generated queries
-- The generated search queries should be specific enough so that there are a few of the relevant reviews only
-- Avoid general/ambiguous queries like: "atmosphere and ambience of the place"
+- The generated questions must be complete on its own. Do not assume the person receiving the question know anything about the person asking the question. for example never use "in my area" or "near me".
 """
 
     response_synthetic_eval_dataset_fp: str = (
-        "data/006_rerun with question respon/response_synthetic_eval_dataset.json"
+        "data/015_revamp_synthetic_eval/response_synthetic_eval_dataset.json"
     )
     response_curated_eval_dataset_fp: str = (
-        "data/006_rerun with question respon/response_curated_eval_dataset.json"
+        "data/015_revamp_synthetic_eval/response_curated_eval_dataset.json"
     )
     response_eval_llm_model: str = "gpt-4o-mini"
     response_eval_llm_model_config: dict = {"temperature": 0.3}
     response_synthetic_num_questions_per_chunk: int = 1
-    response_num_sample_documents: int = 20
+    response_num_sample_documents: int = 30
 
 
 class RunConfig(BaseModel):
     args: RunInputArgs = None
     app_name: str = "review_rec_bot"
-    storage_context_persist_dp: str = "data/008_docstore/storage_context"
+    storage_context_persist_dp: str = "data/009_hybrid_retriever/storage_context"
     db_collection: str = (
-        "review_rec_bot__huggingface__Snowflake_snowflake_arctic_embed_m_v1_5__005_use_smaller_embedding_model"
+        "review_rec_bot__009_hybrid_retriever__huggingface__Snowflake_snowflake_arctic_embed_m_v1_5"
     )
     notebook_cache_dp: str = None
 

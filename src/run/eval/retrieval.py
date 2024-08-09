@@ -131,7 +131,7 @@ Context information is below.
             eval_dict = {
                 "query": eval_result.query,
                 "expected_ids": eval_result.expected_ids,
-                "retrieved_texts": eval_result.retrieved_texts,
+                "retrieved_ids": eval_result.retrieved_ids,
                 **metric_dict,
             }
             eval_dicts.append(eval_dict)

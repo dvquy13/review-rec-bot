@@ -27,6 +27,7 @@ spacy = "^3.7.5"  # Required when using RagDatasetGenerator.from_documents
 mlflow = "2.14.1"
 boto3 = "^1.34.145"
 llama-index-retrievers-bm25 = "^0.2.2"
+fastembed = "^0.3.4"  # Qdrant Hybrid indexing
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.2.4"
