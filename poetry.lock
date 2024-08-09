@@ -632,6 +632,28 @@ files = [
 numpy = {version = ">=1.19.0", markers = "python_version >= \"3.9\""}
 
 [[package]]
+name = "bm25s"
+version = "0.1.10"
+description = "An ultra-fast implementation of BM25 based on sparse matrices."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "bm25s-0.1.10-py3-none-any.whl", hash = "sha256:e936fc820358eed8b3f898841fdcf06391983b1fb86ab2936d5c6dbb8ce1b650"},
+    {file = "bm25s-0.1.10.tar.gz", hash = "sha256:ba4e23e65da069f7839c7b9b391e6657574e7246ea39b1b537e7ae54021c4848"},
+]
+
+[package.dependencies]
+numpy = "*"
+scipy = "*"
+
+[package.extras]
+core = ["PyStemmer", "jax[cpu]", "tqdm", "ujson"]
+dev = ["black"]
+full = ["PyStemmer", "black", "huggingface-hub", "jax[cpu]", "tqdm", "ujson"]
+hf = ["huggingface-hub"]
+stem = ["PyStemmer"]
+
+[[package]]
 name = "boto3"
 version = "1.34.151"
 description = "The AWS SDK for Python"
@@ -3467,6 +3489,22 @@ llama-index-core = ">=0.10.7,<0.11.0"
 llama-parse = ">=0.4.0"
 
 [[package]]
+name = "llama-index-retrievers-bm25"
+version = "0.2.2"
+description = "llama-index retrievers bm25 integration"
+optional = false
+python-versions = "<4.0,>=3.8.1"
+files = [
+    {file = "llama_index_retrievers_bm25-0.2.2-py3-none-any.whl", hash = "sha256:0c5478e54c17c7a29c87d6698ad5f74deff65175da5b9accdc594366866fb634"},
+    {file = "llama_index_retrievers_bm25-0.2.2.tar.gz", hash = "sha256:d810be785b961262f61fefdeaed645a5383b8e7885c2595c83a98ae599b8da2a"},
+]
+
+[package.dependencies]
+bm25s = ">=0.1.7,<0.2.0"
+llama-index-core = ">=0.10.1,<0.11.0"
+pystemmer = ">=2.2.0.1,<3.0.0.0"
+
+[[package]]
 name = "llama-index-vector-stores-chroma"
 version = "0.1.10"
 description = "llama-index vector_stores chroma integration"
@@ -5839,6 +5877,16 @@ python-versions = "*"
 files = [
     {file = "pyreadline3-3.4.1-py3-none-any.whl", hash = "sha256:b0efb6516fd4fb07b45949053826a62fa4cb353db5be2bbb4a7aa1fdd1e345fb"},
     {file = "pyreadline3-3.4.1.tar.gz", hash = "sha256:6f3d1f7b8a31ba32b73917cefc1f28cc660562f39aea8646d30bd6eff21f7bae"},
+]
+
+[[package]]
+name = "pystemmer"
+version = "2.2.0.1"
+description = "Snowball stemming algorithms, for information retrieval"
+optional = false
+python-versions = "*"
+files = [
+    {file = "PyStemmer-2.2.0.1.tar.gz", hash = "sha256:9f3b366f1ed06b49dc1868bf0aefd884423db80f3431be442d0f993e448cc67b"},
 ]
 
 [[package]]
@@ -8550,4 +8598,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.9"
-content-hash = "cbdc2b82a3de82f6a027c69ee554c1e7fa35f7434ab8914c22ef8dddad8dc4f0"
+content-hash = "c28dc63b2b27252330927b4427c66da75eb919dd2baacc9416d52148b0c3aa42"

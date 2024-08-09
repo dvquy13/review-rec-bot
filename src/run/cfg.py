@@ -46,7 +46,7 @@ class EvalConfig(BaseModel):
         "ndcg",
     ]
     retrieval_eval_dataset_fp: str = (
-        "data/001_retriever/retrieval_synthetic_eval_dataset.json"
+        "data/006_rerun with question respon/retrieval_synthetic_eval_dataset.json"
     )
 
     retrieval_question_gen_query: str = """
@@ -88,10 +88,10 @@ IMPORTANT RULES:
 """
 
     response_synthetic_eval_dataset_fp: str = (
-        "data/001_retriever/response_synthetic_eval_dataset.json"
+        "data/006_rerun with question respon/response_synthetic_eval_dataset.json"
     )
     response_curated_eval_dataset_fp: str = (
-        "data/011_analyze_context/response_curated_eval_dataset.json"
+        "data/006_rerun with question respon/response_curated_eval_dataset.json"
     )
     response_eval_llm_model: str = "gpt-4o-mini"
     response_eval_llm_model_config: dict = {"temperature": 0.3}
