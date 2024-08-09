@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import qdrant_client
 from loguru import logger
@@ -11,7 +12,7 @@ class RunOrchestrator:
     @classmethod
     def setup_db(cls, cfg: RunConfig, db: qdrant_client.QdrantClient):
         db_collection = cfg.db_collection
-        nodes_persist_fp = cfg.nodes_persist_fp
+        storage_context_persist_dp = cfg.storage_context_persist_dp
         recreate_index = cfg.args.RECREATE_INDEX
         embed_model_dim = cfg.llm_cfg.embedding_model_dim
 
@@ -20,9 +21,11 @@ class RunOrchestrator:
             if collection_exists:
                 logger.info(f"Deleting existing Qdrant collection {db_collection}...")
                 db.delete_collection(db_collection)
-            if os.path.exists(nodes_persist_fp):
-                logger.info(f"Deleting persisted nodes object at {nodes_persist_fp}...")
-                os.remove(nodes_persist_fp)
+            if os.path.exists(storage_context_persist_dp):
+                logger.info(
+                    f"Deleting persisted storage context at {storage_context_persist_dp}..."
+                )
+                shutil.rmtree(storage_context_persist_dp)
             logger.info(f"Creating new Qdrant collection {db_collection}...")
             db.create_collection(
                 db_collection,

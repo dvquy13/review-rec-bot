@@ -102,10 +102,10 @@ IMPORTANT RULES:
 class RunConfig(BaseModel):
     args: RunInputArgs = None
     app_name: str = "review_rec_bot"
+    storage_context_persist_dp: str = "data/008_docstore/storage_context"
     db_collection: str = (
         "review_rec_bot__huggingface__Snowflake_snowflake_arctic_embed_m_v1_5__005_use_smaller_embedding_model"
     )
-    nodes_persist_fp: str = "data/005_use_smaller_embedding_model/nodes.pkl"
     notebook_cache_dp: str = None
 
     data_fp: str = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
@@ -156,11 +156,13 @@ class RunConfig(BaseModel):
 
         if args.RECREATE_INDEX:
             logger.info(
-                f"ARGS.RECREATE_INDEX=True -> Overwriting db_collection and nodes_persist_fp..."
+                f"ARGS.RECREATE_INDEX=True -> Overwriting db_collection and storage_context_persist_dp..."
             )
-            collection_raw_name = f"{self.app_name}__{self.llm_cfg.embedding_provider}__{self.llm_cfg.embedding_model_name}__{args.RUN_NAME}"
+            collection_raw_name = f"{self.app_name}__{args.RUN_NAME}__{self.llm_cfg.embedding_provider}__{self.llm_cfg.embedding_model_name}"
+            self.storage_context_persist_dp = (
+                f"{self.notebook_cache_dp}/storage_context"
+            )
             self.db_collection = substitute_punctuation(collection_raw_name)
-            self.nodes_persist_fp = f"{self.notebook_cache_dp}/nodes.pkl"
 
     def setup_llm(self):
         # Set up LLM
