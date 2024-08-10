@@ -8,6 +8,19 @@ from pydantic import BaseModel
 from src.run.args import RunInputArgs
 from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
+# Frequently changed
+response_curated_eval_dataset_fp = (
+    "data/018_finetuned_embedding_reindex/response_curated_eval_dataset.json"
+)
+response_synthetic_eval_dataset_fp = (
+    "data/018_finetuned_embedding_reindex/response_synthetic_eval_dataset.json"
+)
+retrieval_synthetic_eval_dataset_fp = (
+    "data/018_finetuned_embedding_reindex/retrieval_synthetic_eval_dataset.json"
+)
+storage_context_persist_dp = "data/018_finetuned_embedding_reindex/storage_context"
+db_collection = "review_rec_bot__018_finetuned_embedding_reindex__huggingface____data_finetune_embedding_finetuned_model"
+
 
 class LLMConfig(BaseModel):
     llm_provider: Literal["openai", "togetherai", "ollama"] = "togetherai"
@@ -51,9 +64,7 @@ class EvalConfig(BaseModel):
         "ap",
         "ndcg",
     ]
-    retrieval_eval_dataset_fp: str = (
-        "data/015_revamp_synthetic_eval/retrieval_synthetic_eval_dataset.json"
-    )
+    retrieval_eval_dataset_fp: str = retrieval_synthetic_eval_dataset_fp
 
     retrieval_question_gen_query: str = """
 You are a helpful assistant.
@@ -103,12 +114,8 @@ IMPORTANT RULES:
 - The generated questions must be complete on its own. Do not assume the person receiving the question know anything about the person asking the question. for example never use "in my area" or "near me".
 """
 
-    response_synthetic_eval_dataset_fp: str = (
-        "data/015_revamp_synthetic_eval/response_synthetic_eval_dataset.json"
-    )
-    response_curated_eval_dataset_fp: str = (
-        "data/015_revamp_synthetic_eval/response_curated_eval_dataset.json"
-    )
+    response_synthetic_eval_dataset_fp: str = response_synthetic_eval_dataset_fp
+    response_curated_eval_dataset_fp: str = response_curated_eval_dataset_fp
     response_eval_llm_model: str = "gpt-4o-mini"
     response_eval_llm_model_config: dict = {"temperature": 0.3}
     response_synthetic_num_questions_per_chunk: int = 1
@@ -118,10 +125,8 @@ IMPORTANT RULES:
 class RunConfig(BaseModel):
     args: RunInputArgs = None
     app_name: str = "review_rec_bot"
-    storage_context_persist_dp: str = "data/009_hybrid_retriever/storage_context"
-    db_collection: str = (
-        "review_rec_bot__009_hybrid_retriever__huggingface__Snowflake_snowflake_arctic_embed_m_v1_5"
-    )
+    storage_context_persist_dp: str = storage_context_persist_dp
+    db_collection: str = db_collection
     notebook_cache_dp: str = None
 
     data_fp: str = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
