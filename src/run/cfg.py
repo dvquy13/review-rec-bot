@@ -23,8 +23,9 @@ db_collection = "review_rec_bot__018_finetuned_embedding_reindex__huggingface___
 
 
 class LLMConfig(BaseModel):
-    llm_provider: Literal["openai", "togetherai", "ollama"] = "togetherai"
-    llm_model_name: str = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+    llm_provider: Literal["openai", "togetherai", "ollama"] = "openai"
+    # llm_model_name: str = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+    llm_model_name: str = "gpt-4o-mini"
     embedding_provider: Literal["openai", "togetherai", "ollama", "huggingface"] = (
         "huggingface"
     )
@@ -209,7 +210,7 @@ class RunConfig(BaseModel):
         elif llm_provider == "openai":
             from llama_index.llms.openai import OpenAI
 
-            llm = OpenAI(model=llm_model_name)
+            llm = OpenAI(model=llm_model_name, temperature=0)
         elif llm_provider == "togetherai":
             from llama_index.llms.together import TogetherLLM
 
