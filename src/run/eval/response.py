@@ -6,6 +6,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 from llama_index.core.evaluation import (
+    ContextRelevancyEvaluator,
     CorrectnessEvaluator,
     FaithfulnessEvaluator,
     RelevancyEvaluator,
@@ -147,7 +148,9 @@ class ResponseEvaluator:
             "faithfulness": FaithfulnessEvaluator(
                 llm=OpenAI(temperature=0, model=judge_model),
             ),
-            # "semantic_similarity": SemanticSimilarityEvaluator(),
+            "context_relevancy": ContextRelevancyEvaluator(
+                llm=OpenAI(temperature=0, model=judge_model),
+            ),
         }
 
         # Initialize evaluations dictionary
@@ -155,6 +158,7 @@ class ResponseEvaluator:
             "correctness": [],
             "relevancy": [],
             "faithfulness": [],
+            "context_relevancy": [],
             "contexts": [],
         }
 
@@ -184,9 +188,16 @@ class ResponseEvaluator:
                 contexts=prediction.contexts,
             )
 
+            context_relevancy_result = judges["context_relevancy"].evaluate(
+                query=example.query,
+                response=prediction.response,
+                contexts=prediction.contexts,
+            )
+
             evals["correctness"].append(correctness_result)
             evals["relevancy"].append(relevancy_result)
             evals["faithfulness"].append(faithfulness_result)
+            evals["context_relevancy"].append(context_relevancy_result)
             evals["contexts"].append(prediction.contexts)
 
         # Save evaluations to JSON
@@ -216,12 +227,18 @@ class ResponseEvaluator:
             evals["faithfulness"],
             metric="faithfulness",
         )
+        deep_eval_context_relevancy_df, mean_context_relevancy_df = get_eval_results_df(
+            ["base_rag"] * len(evals["context_relevancy"]),
+            evals["context_relevancy"],
+            metric="context_relevancy",
+        )
 
         mean_scores_df = pd.concat(
             [
                 mean_correctness_df.reset_index(),
                 mean_relevancy_df.reset_index(),
                 mean_faithfulness_df.reset_index(),
+                mean_context_relevancy_df.reset_index(),
             ],
             axis=0,
             ignore_index=True,
@@ -240,6 +257,9 @@ class ResponseEvaluator:
                 ),
                 deep_eval_faithfulness_df[["scores"]].rename(
                     columns={"scores": "faithfulness_score"}
+                ),
+                deep_eval_context_relevancy_df[["scores"]].rename(
+                    columns={"scores": "context_relevancy_score"}
                 ),
                 pd.Series(evals["contexts"], name="contexts"),
             ],

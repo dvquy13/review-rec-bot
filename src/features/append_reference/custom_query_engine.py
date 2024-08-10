@@ -57,9 +57,7 @@ class ManualAppendReferenceQueryEngine(RetrieverQueryEngine):
             for biz_name, paragraphs in paragraphs.items():
                 paragraphs_fmt += f"**{biz_name}**"
                 for ref_dict in paragraphs:
-                    paragraph = (
-                        f"{ref_dict['text']} (Review: `{ref_dict['review_id']}`)"
-                    )
+                    paragraph = f"{ref_dict['text']} (Review ID: <REVIEW_ID>{ref_dict['review_id']}</REVIEW_ID>)"
                     TRUNCATE_TRHESHOLD_CHARS = 1000
                     # Current workaround for visibility is to truncate the paragraph
                     # TODO: Find a better implementation
