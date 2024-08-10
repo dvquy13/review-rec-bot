@@ -16,9 +16,11 @@ class LLMConfig(BaseModel):
         "huggingface"
     )
     # embedding_model_name: str = "BAAI/bge-large-en-v1.5"
-    embedding_model_name: str = (
-        "Snowflake/snowflake-arctic-embed-m-v1.5"  # one-third the size of bge-large-en-v1.5 but better average retrieval benchmark
-    )
+    # embedding_model_name: str = (
+    #     "Snowflake/snowflake-arctic-embed-m-v1.5"  # one-third the size of bge-large-en-v1.5 but better average retrieval benchmark
+    # )
+    embedding_model_name: str = "./data/finetune_embedding/finetuned_model"
+
     embedding_model_dim: int = None
 
     ollama__host: str = "192.168.100.14"
