@@ -42,14 +42,15 @@ class LLMConfig(BaseModel):
 
 
 class RetrievalConfig(BaseModel):
-    retrieval_top_k: int = 10
-    retrieval_dense_top_k: int = 5
-    retrieval_sparse_top_k: int = 15
+    retrieval_top_k: int = 50
+    retrieval_dense_top_k: int = 50
+    retrieval_sparse_top_k: int = 50
     retrieval_similarity_cutoff: int = (
         None  # If using RRF, this applies after the RRF so the score ties closely to the RRF formula. Not as helpful to use in this case...
     )
-    rerank_top_k: int = 5
-    rerank_model_name: str = "BAAI/bge-reranker-large"
+    rerank_top_k: int = 10
+    # rerank_model_name: str = "BAAI/bge-reranker-large"
+    rerank_model_name: str = "BAAI/bge-reranker-v2-m3"
 
 
 class EvalConfig(BaseModel):
@@ -138,7 +139,7 @@ class RunConfig(BaseModel):
 
     eval_cfg: EvalConfig = EvalConfig()
 
-    batch_size: int = 16
+    batch_size: int = 1  # Prevent Out of GPU Mem
 
     def init(self, args: RunInputArgs):
         self.args = args
@@ -223,7 +224,9 @@ class RunConfig(BaseModel):
         if embedding_provider == "huggingface":
             from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-            embed_model = HuggingFaceEmbedding(model_name=embedding_model_name)
+            embed_model = HuggingFaceEmbedding(
+                model_name=embedding_model_name, embed_batch_size=4
+            )
         elif embedding_provider == "openai":
             from llama_index.embeddings.openai import OpenAIEmbedding
 
