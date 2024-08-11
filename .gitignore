@@ -8,7 +8,7 @@
 **/.env*
 !**/.env.example
 
-data/*
+**/data/*
 !data/.gitkeep
 
 notebooks/*
@@ -18,3 +18,5 @@ notebooks/*
 **/nohup.out
 
 **/.secret*
+
+**/gradio_cached_examples
