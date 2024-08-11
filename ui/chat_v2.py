@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-import gradio as gr
+import chainlit as cl
 import qdrant_client
 import Stemmer
 import torch
@@ -15,6 +15,7 @@ from llama_index.core import (
     get_response_synthesizer,
 )
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
+from llama_index.core.callbacks import CallbackManager
 from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core.response_synthesizers.type import ResponseMode
 from llama_index.core.retrievers import QueryFusionRetriever, VectorIndexRetriever
@@ -211,9 +212,6 @@ query_engine_tool = QueryEngineTool(
 
 tools = [query_engine_tool]
 
-logger.info(f"Launching Chat Demo UI...")
-
-
 agent_system_prompt = """
 You're a helpful assistant who excels at recommending places to go.
 
@@ -221,51 +219,32 @@ Always return the referenced paragraphs at the end of your answer to users. Form
 """
 
 
-def app_chat(message, history, streaming=True):
-    chat_history = []
-    for user_msg, bot_msg in history:
-        chat_history.append(ChatMessage(role=MessageRole.USER, content=user_msg))
-        chat_history.append(ChatMessage(role=MessageRole.ASSISTANT, content=bot_msg))
+@cl.on_chat_start
+async def start():
     agent = OpenAIAgent.from_tools(
         tools,
         verbose=True,
-        chat_history=chat_history,
         system_prompt=agent_system_prompt,
-    )
-    if streaming:
-        response = agent.stream_chat(message)
-        printed = ""
-        for s in response.response_gen:
-            # time.sleep(0.1)
-            printed += s
-            yield printed
-    else:
-        response = agent.chat(message)
-        return str(response)
-
-
-with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(
-        placeholder="<strong>Review Rec Bot</strong><br>I help with recommending places to vist!"
-    )
-    gr.ChatInterface(
-        app_chat,
-        chatbot=chatbot,
-        textbox=gr.Textbox(
-            placeholder="Where do you want to go today?", container=False, scale=7
-        ),
-        title="Review Rec Bot",
-        description="Help users find places to visit based on Yelp reviews",
-        theme="soft",
-        examples=[
-            "Hello",
-            "What are some places to enjoy cold brew coffee?",
-            "I want to find some Vietnamese places for dinner",
-        ],
-        cache_examples=True,
-        retry_btn=None,
-        undo_btn="Delete Previous",
-        clear_btn="Clear",
+        callback_manager=CallbackManager([cl.LlamaIndexCallbackHandler()]),
     )
 
-demo.launch(max_threads=1, debug=True)
+    cl.user_session.set("agent", agent)
+
+    await cl.Message(
+        author="Jaina",
+        content="Hello! I'm Jaina. I help people find places to visit. What are you looking for today?",
+    ).send()
+
+
+@cl.on_message
+async def main(message: cl.Message):
+    agent = cl.user_session.get("agent")
+
+    msg = cl.Message(content="", author="Jaina")
+
+    # res = await agent.astream_chat(message.content)  # will not work, asyncio error
+    res = await cl.make_async(agent.stream_chat)(message.content)
+
+    for token in res.response_gen:
+        await msg.stream_token(token)
+    await msg.send()

@@ -32,6 +32,7 @@ llama-index-finetuning = "^0.1.10"
 mistralai = "<1.0.0"  # To prevent conflict `ModuleNotFoundError: No module named 'mistralai.models.jobs'` with llama-index-finetuning 0.1.10
 llama-index-agent-openai = "^0.2.9"
 gradio = "^4.41.0"
+chainlit = "^1.1.402"
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.2.4"

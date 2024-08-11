@@ -20,3 +20,4 @@ notebooks/*
 **/.secret*
 
 **/gradio_cached_examples
+ui/.chainlit/translations
