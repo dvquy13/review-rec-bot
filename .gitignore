@@ -21,3 +21,4 @@ notebooks/*
 
 **/gradio_cached_examples
 ui/.chainlit/translations
+ui/.files

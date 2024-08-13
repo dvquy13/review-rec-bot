@@ -3,6 +3,7 @@ import sys
 import time
 
 import chainlit as cl
+import pandas as pd
 import qdrant_client
 import Stemmer
 import torch
@@ -39,6 +40,7 @@ from src.features.synthesize_recommendation.custom_tree_summarize import (
 from src.run.args import RunInputArgs
 from src.run.cfg import RunConfig
 from src.run.orchestrator import RunOrchestrator
+from src.svc.availability.availability_check import ReservationService
 
 load_dotenv()
 
@@ -51,7 +53,7 @@ logger.info(f"{torch.cuda.is_available()=}")
 
 ARGS = RunInputArgs(
     EXPERIMENT_NAME="Review Rec Bot - Yelp Review Rec Bot",
-    RUN_NAME="026_chatbot_interface",
+    RUN_NAME="026_rez_tool",
     RUN_DESCRIPTION="""
 # Objective
 
@@ -73,13 +75,14 @@ logger.info(ARGS)
 cfg = RunConfig()
 
 dir_prefix = "../notebooks"
-cfg.storage_context_persist_dp = (
-    f"{dir_prefix}/data/018_finetuned_embedding_reindex/storage_context"
+cfg.storage_context_persist_dp = os.path.abspath(
+    f"{dir_prefix}/data/026_rez_tool/storage_context"
 )
-cfg.db_collection = "review_rec_bot__018_finetuned_embedding_reindex__huggingface____data_finetune_embedding_finetuned_model"
-cfg.llm_cfg.embedding_model_name = (
-    "../notebooks/data/finetune_embedding/finetuned_model"
+cfg.db_collection = "review_rec_bot__026_rez_tool__huggingface____data_finetune_embedding_finetuned_model"
+cfg.llm_cfg.embedding_model_name = os.path.abspath(
+    f"{dir_prefix}/data/finetune_embedding/finetuned_model"
 )
+cfg.data_fp = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
 
 cfg.init(ARGS)
 
@@ -210,7 +213,20 @@ query_engine_tool = QueryEngineTool(
     ),
 )
 
-tools = [query_engine_tool]
+logger.info(f"Loading the data file to build mappers for ReservationService...")
+
+data = pd.read_parquet(cfg.data_fp)
+data = data.assign(
+    biz_categories=lambda df: df["biz_categories"].str.split(", "),
+    date=lambda df: df["date"].dt.strftime("%Y-%m-%dT%H:%M:%S"),
+)
+logger.info(f"{len(data)=}")
+
+opening_hours_db = data.set_index("business_id")["biz_hours"].dropna().to_dict()
+biz_name_id_mapper = data.set_index("biz_name")["business_id"].dropna().to_dict()
+rez_tool = ReservationService(opening_hours_db, biz_name_id_mapper)
+
+tools = [query_engine_tool] + rez_tool.to_tool_list()
 
 agent_system_prompt = """
 You're a helpful assistant who excels at recommending places to go.

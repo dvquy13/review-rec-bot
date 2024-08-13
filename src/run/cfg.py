@@ -10,16 +10,16 @@ from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
 # Frequently changed
 response_curated_eval_dataset_fp = (
-    "data/018_finetuned_embedding_reindex/response_curated_eval_dataset.json"
+    "data/026_rez_tool/response_curated_eval_dataset.json"
 )
 response_synthetic_eval_dataset_fp = (
-    "data/018_finetuned_embedding_reindex/response_synthetic_eval_dataset.json"
+    "data/026_rez_tool/response_synthetic_eval_dataset.json"
 )
 retrieval_synthetic_eval_dataset_fp = (
-    "data/018_finetuned_embedding_reindex/retrieval_synthetic_eval_dataset.json"
+    "data/026_rez_tool/retrieval_synthetic_eval_dataset.json"
 )
-storage_context_persist_dp = "data/018_finetuned_embedding_reindex/storage_context"
-db_collection = "review_rec_bot__018_finetuned_embedding_reindex__huggingface____data_finetune_embedding_finetuned_model"
+storage_context_persist_dp = "data/026_rez_tool/storage_context"
+db_collection = "review_rec_bot__026_rez_tool__huggingface____data_finetune_embedding_finetuned_model"
 
 
 class LLMConfig(BaseModel):
