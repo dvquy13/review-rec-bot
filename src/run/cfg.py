@@ -16,10 +16,11 @@ response_synthetic_eval_dataset_fp = (
     "data/026_rez_tool/response_synthetic_eval_dataset.json"
 )
 retrieval_synthetic_eval_dataset_fp = (
-    "data/026_rez_tool/retrieval_synthetic_eval_dataset.json"
+    "data/027_auto_retrieval/retrieval_synthetic_eval_dataset.json"
 )
-storage_context_persist_dp = "data/026_rez_tool/storage_context"
-db_collection = "review_rec_bot__026_rez_tool__huggingface____data_finetune_embedding_finetuned_model"
+storage_context_persist_dp = "data/028_refactor/storage_context"
+db_collection = "review_rec_bot__028_refactor"
+db_collection_fp = "data/028_refactor/chroma_db"
 
 
 class LLMConfig(BaseModel):
@@ -128,7 +129,9 @@ class RunConfig(BaseModel):
     args: RunInputArgs = None
     app_name: str = "review_rec_bot"
     storage_context_persist_dp: str = storage_context_persist_dp
+    vector_db: Literal["chromadb", "qdrant"] = "qdrant"
     db_collection: str = db_collection
+    db_collection_fp: str = db_collection_fp
     notebook_cache_dp: str = None
 
     data_fp: str = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
@@ -181,10 +184,11 @@ class RunConfig(BaseModel):
             logger.info(
                 f"ARGS.RECREATE_INDEX=True -> Overwriting db_collection and storage_context_persist_dp..."
             )
-            collection_raw_name = f"{self.app_name}__{args.RUN_NAME}__{self.llm_cfg.embedding_provider}__{self.llm_cfg.embedding_model_name}"
+            collection_raw_name = f"{self.app_name}__{args.RUN_NAME}"
             self.storage_context_persist_dp = (
                 f"{self.notebook_cache_dp}/storage_context"
             )
+            self.db_collection_fp = f"{self.notebook_cache_dp}/{self.vector_db}"
             self.db_collection = substitute_punctuation(collection_raw_name)
 
     def setup_llm(self):

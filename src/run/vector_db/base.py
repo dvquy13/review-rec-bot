@@ -1,0 +1,3 @@
+class VectorDBWrapper:
+    @property
+    def doc_count(self) -> int: ...
