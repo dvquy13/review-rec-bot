@@ -10,17 +10,17 @@ from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
 # Frequently changed
 response_curated_eval_dataset_fp = (
-    "data/026_rez_tool/response_curated_eval_dataset.json"
+    "data/029_citation_query_engine/response_curated_eval_dataset.json"
 )
 response_synthetic_eval_dataset_fp = (
-    "data/026_rez_tool/response_synthetic_eval_dataset.json"
+    "data/029_citation_query_engine/response_synthetic_eval_dataset.json"
 )
 retrieval_synthetic_eval_dataset_fp = (
-    "data/027_auto_retrieval/retrieval_synthetic_eval_dataset.json"
+    "data/029_citation_query_engine/retrieval_synthetic_eval_dataset.json"
 )
-storage_context_persist_dp = "data/028_refactor/storage_context"
-db_collection = "review_rec_bot__028_refactor"
-db_collection_fp = "data/028_refactor/chroma_db"
+storage_context_persist_dp = "data/029_citation_query_engine/storage_context"
+db_collection = "review_rec_bot__029_citation_query_engine"
+db_collection_fp = "data/029_citation_query_engine/chroma_db"
 
 
 class LLMConfig(BaseModel):
@@ -190,6 +190,13 @@ class RunConfig(BaseModel):
             )
             self.db_collection_fp = f"{self.notebook_cache_dp}/{self.vector_db}"
             self.db_collection = substitute_punctuation(collection_raw_name)
+
+        if args.TESTING:
+            logger.info(
+                f"TESTING=True -> Limiting the number of eval questions generated to 5..."
+            )
+            self.eval_cfg.retrieval_num_sample_nodes = 5
+            self.eval_cfg.response_num_sample_documents = 5
 
     def setup_llm(self):
         # Set up LLM
