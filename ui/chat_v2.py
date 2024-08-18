@@ -1,46 +1,35 @@
 import os
 import sys
-import time
 
 import chainlit as cl
 import pandas as pd
-import qdrant_client
 import Stemmer
 import torch
 from dotenv import load_dotenv
 from llama_index.agent.openai import OpenAIAgent
-from llama_index.core import (
-    Settings,
-    StorageContext,
-    VectorStoreIndex,
-    get_response_synthesizer,
-)
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
+from llama_index.core import Settings, StorageContext, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.postprocessor import SimilarityPostprocessor
-from llama_index.core.response_synthesizers.type import ResponseMode
+from llama_index.core.query_engine import CitationQueryEngine
 from llama_index.core.retrievers import QueryFusionRetriever, VectorIndexRetriever
 from llama_index.core.storage.docstore import SimpleDocumentStore
-from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
 from llama_index.retrievers.bm25 import BM25Retriever
-from llama_index.vector_stores.qdrant import QdrantVectorStore
 from loguru import logger
 
 sys.path.insert(0, "..")
 
-
-from src.features.append_reference.custom_query_engine import (
-    ManualAppendReferenceQueryEngine,
-)
-from src.features.synthesize_recommendation.custom_tree_summarize import (
-    CUSTOM_TREE_SUMMARIZE_PROMPT_SEL,
+from src.features.citation.custom_citation_query_engine import (
+    CUSTOM_CITATION_QA_TEMPLATE,
+    CUSTOM_CITATION_REFINE_TEMPLATE,
 )
 from src.run.args import RunInputArgs
 from src.run.cfg import RunConfig
-from src.run.orchestrator import RunOrchestrator
 from src.svc.availability.availability_check import ReservationService
+from src.svc.current_datetime.current_datetime_check import get_current_datetime
+from ui.callback_handler import LlamaIndexCallbackHandler
 
 load_dotenv()
 
@@ -53,7 +42,7 @@ logger.info(f"{torch.cuda.is_available()=}")
 
 ARGS = RunInputArgs(
     EXPERIMENT_NAME="Review Rec Bot - Yelp Review Rec Bot",
-    RUN_NAME="026_rez_tool",
+    RUN_NAME="031_rerun",
     RUN_DESCRIPTION="""
 # Objective
 
@@ -76,9 +65,10 @@ cfg = RunConfig()
 
 dir_prefix = "../notebooks"
 cfg.storage_context_persist_dp = os.path.abspath(
-    f"{dir_prefix}/data/026_rez_tool/storage_context"
+    f"{dir_prefix}/data/031_rerun/storage_context"
 )
-cfg.db_collection = "review_rec_bot__026_rez_tool__huggingface____data_finetune_embedding_finetuned_model"
+cfg.db_collection = "review_rec_bot__031_rerun"
+cfg.db_collection_fp = "data/031_rerun/chroma_db"
 cfg.llm_cfg.embedding_model_name = os.path.abspath(
     f"{dir_prefix}/data/finetune_embedding/finetuned_model"
 )
@@ -95,20 +85,15 @@ logger.info(cfg.llm_cfg.model_dump_json(indent=2))
 Settings.embed_model = embed_model
 Settings.llm = llm
 
-qdrantdb = qdrant_client.QdrantClient(host="localhost", port=6333)
-aqdrantdb = qdrant_client.AsyncQdrantClient(host="localhost", port=6333)
+if cfg.vector_db == "chromadb":
+    from src.run.vector_db import ChromaVectorDB as VectorDB
+elif cfg.vector_db == "qdrant":
+    from src.run.vector_db import QdrantVectorDB as VectorDB
 
-RunOrchestrator.setup_db(cfg, qdrantdb)
-
-db_collection = qdrantdb.get_collection(cfg.db_collection)
-vector_store = QdrantVectorStore(
-    client=qdrantdb,
-    collection_name=cfg.db_collection,
-    aclient=aqdrantdb,
-    enable_hybrid=False,
-    prefer_grpc=True,
-)
-
+vector_db = VectorDB(cfg)
+vector_store = vector_db.vector_store
+db_collection_count = vector_db.doc_count
+logger.info(f"{db_collection_count=}")
 
 logger.info(f"Loading Storage Context from {cfg.storage_context_persist_dp}...")
 docstore = SimpleDocumentStore.from_persist_dir(
@@ -190,14 +175,12 @@ reranker = FlagEmbeddingReranker(
 )
 node_postprocessors.append(reranker)
 
-response_synthesizer = get_response_synthesizer(
-    response_mode=ResponseMode.TREE_SUMMARIZE,
-    summary_template=CUSTOM_TREE_SUMMARIZE_PROMPT_SEL,
-)
-query_engine = ManualAppendReferenceQueryEngine(
+query_engine = CitationQueryEngine.from_args(
+    index=index,
     retriever=retriever,
-    response_synthesizer=response_synthesizer,
     node_postprocessors=node_postprocessors,
+    citation_qa_template=CUSTOM_CITATION_QA_TEMPLATE,
+    citation_refine_template=CUSTOM_CITATION_REFINE_TEMPLATE,
 )
 
 logger.info(f"Registerring Query Engine as Tool...")
@@ -226,12 +209,16 @@ opening_hours_db = data.set_index("business_id")["biz_hours"].dropna().to_dict()
 biz_name_id_mapper = data.set_index("biz_name")["business_id"].dropna().to_dict()
 rez_tool = ReservationService(opening_hours_db, biz_name_id_mapper)
 
-tools = [query_engine_tool] + rez_tool.to_tool_list()
+get_current_datetime_tool = FunctionTool.from_defaults(fn=get_current_datetime)
+
+tools = [query_engine_tool] + rez_tool.to_tool_list() + [get_current_datetime_tool]
 
 agent_system_prompt = """
 You're a helpful assistant who excels at recommending places to go.
 
-Always return the referenced paragraphs at the end of your answer to users. Format them nicely if need to.
+You must return the cited sources to your users so that they know you base on which information to make the recommendations.
+
+If there are citation sources returned from the tools, always return them exactly as they are at the end of your answer to users.
 """
 
 
@@ -241,7 +228,7 @@ async def start():
         tools,
         verbose=True,
         system_prompt=agent_system_prompt,
-        callback_manager=CallbackManager([cl.LlamaIndexCallbackHandler()]),
+        callback_manager=CallbackManager([LlamaIndexCallbackHandler()]),
     )
 
     cl.user_session.set("agent", agent)

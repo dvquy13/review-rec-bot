@@ -9,18 +9,16 @@ from src.run.args import RunInputArgs
 from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
 # Frequently changed
-response_curated_eval_dataset_fp = (
-    "data/029_citation_query_engine/response_curated_eval_dataset.json"
-)
+response_curated_eval_dataset_fp = "data/031_rerun/response_curated_eval_dataset.json"
 response_synthetic_eval_dataset_fp = (
-    "data/029_citation_query_engine/response_synthetic_eval_dataset.json"
+    "data/031_rerun/response_synthetic_eval_dataset.json"
 )
 retrieval_synthetic_eval_dataset_fp = (
-    "data/029_citation_query_engine/retrieval_synthetic_eval_dataset.json"
+    "data/031_rerun/retrieval_synthetic_eval_dataset.json"
 )
-storage_context_persist_dp = "data/029_citation_query_engine/storage_context"
-db_collection = "review_rec_bot__029_citation_query_engine"
-db_collection_fp = "data/029_citation_query_engine/chroma_db"
+storage_context_persist_dp = "data/031_rerun/storage_context"
+db_collection = "review_rec_bot__031_rerun"
+db_collection_fp = "data/031_rerun/chroma_db"
 
 
 class LLMConfig(BaseModel):
@@ -165,6 +163,12 @@ class RunConfig(BaseModel):
             )
             logging.getLogger("llama_index").setLevel(logging.DEBUG)
 
+        if not os.environ.get("MLFLOW_TRACKING_URI"):
+            logger.warning(
+                f"Environment variable MLFLOW_TRACKING_URI is not set. Setting args.LOG_TO_MLFLOW to false."
+            )
+            args.LOG_TO_MLFLOW = False
+
         if args.LOG_TO_MLFLOW:
             logger.info(
                 f"Setting up MLflow experiment {args.EXPERIMENT_NAME} - run {args.RUN_NAME}..."
@@ -193,10 +197,10 @@ class RunConfig(BaseModel):
 
         if args.TESTING:
             logger.info(
-                f"TESTING=True -> Limiting the number of eval questions generated to 5..."
+                f"TESTING=True -> Limiting the number of eval questions generated to 2..."
             )
-            self.eval_cfg.retrieval_num_sample_nodes = 5
-            self.eval_cfg.response_num_sample_documents = 5
+            self.eval_cfg.retrieval_num_sample_nodes = 2
+            self.eval_cfg.response_num_sample_documents = 2
 
     def setup_llm(self):
         # Set up LLM

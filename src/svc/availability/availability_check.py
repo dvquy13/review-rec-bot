@@ -128,15 +128,17 @@ class ReservationService(BaseToolSpec):
         return available_slots >= pax
 
     def check_availability_range(
-        self, business_id: str, start_datetime: str, end_datetime: str
+        self, business_id: str, start_datetime: str, end_datetime: str, pax: int
     ) -> str:
         """
-        Checks availability for a range of date-times at the hour level, considering the business's opening hours.
+        Checks availability for a range of date-times at the hour level, considering
+        the business's opening hours and the required number of pax.
 
         Args:
             business_id (str): The ID of the business.
             start_datetime (str): The start of the date range in ISO format (e.g., "2023-08-15T08:00:00").
             end_datetime (str): The end of the date range in ISO format (e.g., "2023-08-15T12:00:00").
+            pax (int): The number of people.
 
         Returns:
             str: A JSON string describing the availability for each hour in the range.
@@ -145,13 +147,18 @@ class ReservationService(BaseToolSpec):
         start_datetime_obj = datetime.fromisoformat(start_datetime)
         end_datetime_obj = datetime.fromisoformat(end_datetime)
         current_datetime = start_datetime_obj
+
         while current_datetime <= end_datetime_obj:
             current_datetime_str = current_datetime.isoformat()
             if self.is_open(business_id, current_datetime_str):
                 datetime_str = current_datetime.strftime("%Y-%m-%d %H:00")
                 available_slots = self.hash_to_slots(business_id, current_datetime_str)
-                availability[datetime_str] = available_slots
+                # Check if the available slots are sufficient for the pax size
+                availability[datetime_str] = available_slots >= pax
+            else:
+                availability[current_datetime.strftime("%Y-%m-%d %H:00")] = False
             current_datetime += timedelta(hours=1)
+
         return json.dumps(availability, indent=4)
 
     def get_business_id(self, biz_name: str) -> Optional[str]:
