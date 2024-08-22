@@ -8,7 +8,7 @@
 ## Set up
 - Download the Yelp Data at https://www.yelp.com/dataset, unzip the reviews file `yelp_dataset.tar` (4.34 GB) and put the data at `data/yelp_dataset`. For example: `data/yelp_dataset/yelp_academic_dataset_business.json`
 - Create a new `.env` file based on `.env.example` and populate the variables there
-- Create a new Python 3.11.9 environment: `conda create --prefix ./.venv python=3.9.11`
+- Create a new Python 3.11.9 environment: `conda create --prefix ./.venv python=3.11.9`
 - Make sure Poetry use the new Python 3.11.9 environment: `poetry env use ./.venv`
 - Install Python dependencies with Poetry: `poetry install`
 - Start the Jupyterlab notebook: `poetry jupyter lab`
