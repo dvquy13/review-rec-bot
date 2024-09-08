@@ -9,16 +9,18 @@ from src.run.args import RunInputArgs
 from src.run.utils import pprint_pydantic_model, substitute_punctuation
 
 # Frequently changed
-response_curated_eval_dataset_fp = "data/031_rerun/response_curated_eval_dataset.json"
+response_curated_eval_dataset_fp = (
+    "data/034_rerun_400_restaurants/response_curated_eval_dataset.json"
+)
 response_synthetic_eval_dataset_fp = (
-    "data/031_rerun/response_synthetic_eval_dataset.json"
+    "data/034_rerun_400_restaurants/response_synthetic_eval_dataset.json"
 )
 retrieval_synthetic_eval_dataset_fp = (
-    "data/031_rerun/retrieval_synthetic_eval_dataset.json"
+    "data/034_rerun_400_restaurants/retrieval_synthetic_eval_dataset.json"
 )
-storage_context_persist_dp = "data/031_rerun/storage_context"
-db_collection = "review_rec_bot__031_rerun"
-db_collection_fp = "data/031_rerun/chroma_db"
+storage_context_persist_dp = "data/034_rerun_400_restaurants/storage_context"
+db_collection = "review_rec_bot__034_rerun_400_restaurants"
+db_collection_fp = "data/034_rerun_400_restaurants/chroma_db"
 
 
 class LLMConfig(BaseModel):
@@ -47,7 +49,7 @@ class RetrievalConfig(BaseModel):
     retrieval_similarity_cutoff: int = (
         None  # If using RRF, this applies after the RRF so the score ties closely to the RRF formula. Not as helpful to use in this case...
     )
-    rerank_top_k: int = 10
+    rerank_top_k: int = 20
     # rerank_model_name: str = "BAAI/bge-reranker-large"
     rerank_model_name: str = "BAAI/bge-reranker-v2-m3"
 
@@ -132,7 +134,7 @@ class RunConfig(BaseModel):
     db_collection_fp: str = db_collection_fp
     notebook_cache_dp: str = None
 
-    data_fp: str = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
+    data_fp: str = "../data/yelp_dataset/sample/sample_400_biz/denom_review.parquet"
 
     llm_cfg: LLMConfig = LLMConfig()
 

@@ -1,8 +1,8 @@
 from llama_index.core.prompts.base import PromptTemplate
 
 CUSTOM_CITATION_QA_TEMPLATE = PromptTemplate(
-    "Based on only the provided information, recommend multiple places to visit that match the user's preferences. "
-    "Include information about the places that would help the user make decisions, e.g. location and categories"
+    "Based on only the provided information, recommend multiple restaurants that match the user's preferences. "
+    "Include information about the restaurants that would help the user make decisions, e.g. location and categories"
     "You should rank the recommendations based on how relevant they are to the user's query"
     "Provide a summary explanation of the strengths of each option and compare them with each other based on different intentions.\n"
     "When referencing information from a source review, "
@@ -17,8 +17,8 @@ CUSTOM_CITATION_QA_TEMPLATE = PromptTemplate(
     "Cake Mix is my favorite. Great place to top off a date.\n"
     "Source 2:\n"
     "I'm looking forward to coming back next week. I can't believe on Thursday tall PBR drafts are 2.50.\n"
-    "Query: What are some places to enjoy cake?\n"
-    "Answer: Based on your query about places to enjoy cake, here are several recommendations ranked by relevance:"
+    "Query: What are some restaurants to enjoy cake?\n"
+    "Answer: Based on your query about restaurants to enjoy cake, here are several recommendations ranked by relevance:"
     "### 1. Miha Kitchen:\n- Address: <placeholder>\n- Categories: <placeholder>\n- Summary: Miha Kitchen is highly praised for its delicious offerings, including cheese cake. "
     " The bakery has a cute space and a variety of grab-and-go options, especially for the Cake Mix [1]. "
     "The positive reviews highlight the quality of their food and drinks, particularly the chese cake, which is noted as good."
@@ -36,8 +36,8 @@ CUSTOM_CITATION_QA_TEMPLATE = PromptTemplate(
 )
 
 CUSTOM_CITATION_REFINE_TEMPLATE = PromptTemplate(
-    "Based on only the provided information, recommend multiple places to visit that match the user's preferences. "
-    "Include information about the places that would help the user make decisions, e.g. location and categories"
+    "Based on only the provided information, recommend multiple restaurants that match the user's preferences. "
+    "Include information about the restaurants that would help the user make decisions, e.g. location and categories"
     "You should rank the recommendations based on how relevant they are to the user's query"
     "Provide a summary explanation of the strengths of each option and compare them with each other based on different intentions.\n"
     "When referencing information from a source review, "
@@ -52,8 +52,8 @@ CUSTOM_CITATION_REFINE_TEMPLATE = PromptTemplate(
     "Cake Mix is my favorite. Great place to top off a date.\n"
     "Source 2:\n"
     "I'm looking forward to coming back next week. I can't believe on Thursday tall PBR drafts are 2.50.\n"
-    "Query: What are some places to enjoy cake?\n"
-    "Answer: Based on your query about places to enjoy cake, here are several recommendations ranked by relevance:"
+    "Query: What are some restaurants to enjoy cake?\n"
+    "Answer: Based on your query about restaurants to enjoy cake, here are several recommendations ranked by relevance:"
     "### 1. Miha Kitchen:\n- Address: <placeholder>\n- Categories: <placeholder>\n- Summary: Miha Kitchen is highly praised for its delicious offerings, including cheese cake. "
     " The bakery has a cute space and a variety of grab-and-go options, especially for the Cake Mix [1]. "
     "The positive reviews highlight the quality of their food and drinks, particularly the chese cake, which is noted as good."
@@ -66,7 +66,8 @@ CUSTOM_CITATION_REFINE_TEMPLATE = PromptTemplate(
     "We have provided an existing answer: {existing_answer}"
     "Below are several numbered sources of information. "
     "Use them to refine the existing answer. "
-    "Please double check and make sure that the correct sources are quoted at the end. "
+    "Important: You must double check and make sure that the correct sources are quoted at the end"
+    " and the cited source numbers are correctly included in the main answer! "
     "If the provided sources are not helpful, you will repeat the existing answer."
     "\nBegin refining!"
     "\n------\n"

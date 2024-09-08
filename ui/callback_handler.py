@@ -64,7 +64,7 @@ class LlamaIndexCallbackHandler(TokenCountingHandler):
         elif event_type == CBEventType.FUNCTION_CALL:
             step_type = "tool"
             # on_event_start: event_type=<CBEventType.FUNCTION_CALL: 'function_call'>, payload={<EventPayload.FUNCTION_CALL: 'function_call'>: '{"input":"best places to enjoy cold brew coffee"}', <EventPayload.TOOL: 'tool'>: ToolMetadata(de
-            # scription='useful for when you want to find places to visit based on end-user reviews. Takes input in a question format, e.g.: What are the best Vietnamese restaurants in Texas?', name='reco_review', fn_schema=<class 'llama_in
+            # scription='useful for when you want to find restaurants based on end-user reviews. Takes input in a question format, e.g.: What are the best Vietnamese restaurants in Texas?', name='reco_review', fn_schema=<class 'llama_in
             # dex.core.tools.types.DefaultToolFnSchema'>, return_direct=False)}
             tool = payload.get(EventPayload.TOOL)
             tool_name = tool.name

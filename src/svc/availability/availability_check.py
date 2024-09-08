@@ -105,8 +105,8 @@ class ReservationService(BaseToolSpec):
         seed_str = f"{business_id}_{date_time_obj.strftime('%Y-%m-%d_%H')}"
         seed = int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (10**8)
         random.seed(seed)
-        # 50% chance to return 0
-        if seed % 2 == 0:
+        # 20% chance to return 0
+        if seed % 5 == 0:
             return 0
         return random.randint(1, 10)
 

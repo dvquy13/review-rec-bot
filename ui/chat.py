@@ -202,7 +202,7 @@ query_engine_tool = QueryEngineTool(
     metadata=ToolMetadata(
         name="reco_review",
         description=(
-            "useful for when you want to find places to visit"
+            "useful for when you want to find restaurants"
             " based on end-user reviews. Takes input in a question"
             " format, e.g.: What are the best Vietnamese restaurants in Texas?"
         ),
@@ -215,7 +215,7 @@ logger.info(f"Launching Chat Demo UI...")
 
 
 agent_system_prompt = """
-You're a helpful assistant who excels at recommending places to go.
+You're a helpful assistant who excels at recommending restaurants.
 
 Always return the referenced paragraphs at the end of your answer to users. Format them nicely if need to.
 """
@@ -246,7 +246,7 @@ def app_chat(message, history, streaming=True):
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
-        placeholder="<strong>Review Rec Bot</strong><br>I help with recommending places to vist!"
+        placeholder="<strong>Review Rec Bot</strong><br>I help with recommending restaurants and cafes!"
     )
     gr.ChatInterface(
         app_chat,
@@ -255,7 +255,7 @@ with gr.Blocks() as demo:
             placeholder="Where do you want to go today?", container=False, scale=7
         ),
         title="Review Rec Bot",
-        description="Help users find places to visit based on Yelp reviews",
+        description="Help users find restaurants based on Yelp reviews",
         theme="soft",
         examples=[
             "Hello",

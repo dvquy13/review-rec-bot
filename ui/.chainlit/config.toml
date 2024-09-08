@@ -56,7 +56,7 @@ edit_message = true
 name = "Review Rec Bot"
 
 # Description of the assistant. This is used for HTML tags.
-# description = "Help users find places to visit based on Yelp reviews"
+# description = "Help users find restaurants and cafes based on Yelp reviews"
 
 # Large size content are by default collapsed for a cleaner ui
 default_collapse_content = true

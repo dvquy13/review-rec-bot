@@ -42,7 +42,7 @@ logger.info(f"{torch.cuda.is_available()=}")
 
 ARGS = RunInputArgs(
     EXPERIMENT_NAME="Review Rec Bot - Yelp Review Rec Bot",
-    RUN_NAME="031_rerun",
+    RUN_NAME="034_rerun_400_restaurants",
     RUN_DESCRIPTION="""
 # Objective
 
@@ -65,14 +65,14 @@ cfg = RunConfig()
 
 dir_prefix = "../notebooks"
 cfg.storage_context_persist_dp = os.path.abspath(
-    f"{dir_prefix}/data/031_rerun/storage_context"
+    f"{dir_prefix}/data/034_rerun_400_restaurants/storage_context"
 )
-cfg.db_collection = "review_rec_bot__031_rerun"
-cfg.db_collection_fp = "data/031_rerun/chroma_db"
+cfg.db_collection = "review_rec_bot__034_rerun_400_restaurants"
+cfg.db_collection_fp = "data/034_rerun_400_restaurants/chroma_db"
 cfg.llm_cfg.embedding_model_name = os.path.abspath(
     f"{dir_prefix}/data/finetune_embedding/finetuned_model"
 )
-cfg.data_fp = "../data/yelp_dataset/sample/sample_100_biz/denom_review.parquet"
+cfg.data_fp = "../data/yelp_dataset/sample/sample_400_biz/denom_review.parquet"
 
 cfg.init(ARGS)
 
@@ -114,7 +114,6 @@ vector_retriever = VectorIndexRetriever(
     index=index,
     vector_store_query_mode="mmr",
     similarity_top_k=cfg.retrieval_cfg.retrieval_dense_top_k,
-    # sparse_top_k=cfg.retrieval_cfg.retrieval_sparse_top_k,
 )
 
 logger.info(f"Configuring BM25 Retriever...")
@@ -183,13 +182,13 @@ query_engine = CitationQueryEngine.from_args(
     citation_refine_template=CUSTOM_CITATION_REFINE_TEMPLATE,
 )
 
-logger.info(f"Registerring Query Engine as Tool...")
+logger.info(f"Registering Query Engine as Tool...")
 query_engine_tool = QueryEngineTool(
     query_engine=query_engine,
     metadata=ToolMetadata(
         name="reco_review",
         description=(
-            "useful for when you want to find places to visit"
+            "useful for when you want to find restaurants and cafes"
             " based on end-user reviews. Takes input in a question"
             " format, e.g.: What are the best Vietnamese restaurants in Texas?"
         ),
@@ -216,9 +215,14 @@ tools = [query_engine_tool] + rez_tool.to_tool_list() + [get_current_datetime_to
 agent_system_prompt = """
 You're a helpful assistant who excels at recommending places to go.
 
+When users ask for relative time like today or tomorrow, always use the get_current_datetime tool.
+
+You should always narrow down the places like states or cities in the US. If you don't know this information, please ask the user.
+
 You must return the cited sources to your users so that they know you base on which information to make the recommendations.
 
-If there are citation sources returned from the tools, always return them exactly as they are at the end of your answer to users.
+If there are citation sources returned from the tools, always return them exactly as they are of your answer to users.
+This mean that you must respect if where the citation numbers (like [1], [2]) in the answers and at the end below the Sources section.
 """
 
 
@@ -235,7 +239,7 @@ async def start():
 
     await cl.Message(
         author="Jaina",
-        content="Hello! I'm Jaina. I help people find places to visit. What are you looking for today?",
+        content="Hello! I'm Jaina. I help people find restaurants and cafes. What are you looking for today?",
     ).send()
 
 

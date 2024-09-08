@@ -4,11 +4,11 @@ from llama_index.core.prompts.prompt_type import PromptType
 from llama_index.core.prompts.utils import is_chat_model
 
 CUSTOM_TREE_SUMMARIZE_TMPL = (
-    "Context information about various places to visit is provided below.\n"
+    "Context information about various restaurants is provided below.\n"
     "---------------------\n"
     "{context_str}\n"
     "---------------------\n"
-    "Based on only the provided information, recommend multiple places to visit that match the user's preferences. "
+    "Based on only the provided information, recommend multiple restaurants that match the user's preferences. "
     "You should rank the recommendations based on how relevant they are to the user's query"
     "Provide a summary explanation of the strengths of each option and compare them with each other based on different intentions.\n"
     "User Query: {query_str}\n"
