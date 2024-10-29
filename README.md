@@ -1,5 +1,7 @@
 # Business Recommendation Chatbot based on Yelp Data
 
+🔗 [Blog Post](https://dvquys.com/projects/review-rec-bot/).
+
 # How to run
 ## Prerequisite
 - Poetry 1.8.3
@@ -22,6 +24,3 @@
 - Navigate to `ui` folder: `cd ui`
 - Run: `poetry run chainlit run chat_v2.py -hw`
 - Access the Chatbot UI at http://localhost:8000
-
-# Report Document
-[Here](https://docs.google.com/document/d/1sBwgWbvYZ2cPOxno8xMCwgHlqKBxUsTh0qYGsMhyGnI/edit?usp=sharing) is a summary of the project and what I have learned.
